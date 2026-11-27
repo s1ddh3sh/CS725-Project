@@ -1,17 +1,15 @@
 """Train the tri-branch network on COCO real images + DRCT-2M fakes as a pure real/fake detector.
 
-ONE objective: binary cross-entropy (fake = 1, real = 0). There are no generator / family heads.
+ONE objective: binary cross-entropy (fake = 1, real = 0).
 The generator name of each fake is still used, but only for
   * balanced sampling (50% real, 50% fake split evenly over the fake sources), and
   * per-generator reporting (TPR / AUC per source) - never as a training target.
 
-Same two-stage recipe as the Synthbuster train.py:
   stage 1: CLIP frozen; branches B, C, fusion and the binary head train.
   stage 2: LoRA on CLIP enabled (low LR), everything else at a lower LR.
-The checkpoint is chosen by validation log-loss (sensitive to calibration, unlike AUC).
 
   python train_coco.py --manifest /data/coco_manifest.csv --out_dir runs/coco_v1
-  python train_coco.py ... --branches bc                 # ablation: no CLIP branch
+  python train_coco.py ... --branches bc                 # no CLIP branch
 """
 import argparse
 import json

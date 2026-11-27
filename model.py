@@ -22,7 +22,7 @@ D_TOK = 512   # token width of every branch
 D_EMB = 256   # embedding width
 
 
-# =====================================================================  Branch A
+# Branch A
 class LoRALinear(nn.Module):
     def __init__(self, base: nn.Linear, r=8, alpha=16):
         super().__init__()
@@ -66,7 +66,7 @@ class CLIPBranch(nn.Module):
         return sum(wi * f for wi, f in zip(w, feats))
 
 
-# =====================================================================  Branch B
+#  Branch B
 def _srm_weight():
     k1 = np.array([[0, 0, 0, 0, 0], [0, -1, 2, -1, 0], [0, 2, -4, 2, 0],
                    [0, -1, 2, -1, 0], [0, 0, 0, 0, 0]], np.float32) / 4.0
@@ -152,7 +152,7 @@ class ForensicBranch(nn.Module):
         return self.out(self.pool(self.body(h)))
 
 
-# =====================================================================  Branch C
+#  Branch C
 class SpectrumBranch(nn.Module):
     def __init__(self, crop=224):
         super().__init__()
@@ -179,7 +179,7 @@ class SpectrumBranch(nn.Module):
         return self.out(self.cnn(s).mean((2, 3)))
 
 
-# =====================================================================  Heads
+#  Heads
 class ArcMarginHead(nn.Module):
     """Cosine classifier with additive angular margin (ArcFace)."""
 
@@ -202,7 +202,7 @@ class ArcMarginHead(nn.Module):
         return torch.where(onehot, phi, cos) * self.s
 
 
-# =====================================================================  Full model
+# Full model
 class AttributionNet(nn.Module):
     def __init__(self, branches="abc", clip_name="openai/clip-vit-large-patch14", crop=224,
                  lora_r=8, lora_last=8, branch_drop=0.15, arc_s=30.0, arc_m=0.2, fusion_drop=0.2,

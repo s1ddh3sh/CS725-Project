@@ -89,13 +89,12 @@ def main():
     real_q = None if cfg.get("no_format_match") else cfg["real_jpeg_q"]
     results = {}
 
-    # ---------------------------------------------------------------- 1. COCO test
+    # COCO test
     te = pd.read_csv(rd / "split_test.csv")
     res = run(model, te, cfg, a, device, real_q=real_q)
     results["coco_test"] = detection_report(res, te.cls.values)
     print_report("COCO test (val2017 ids)", results["coco_test"])
 
-    # ---------------------------------------------------------------- 2. robustness
     if not a.skip_robustness:
         results["robustness"] = {}
         for kind, param in PERTURBATIONS:
@@ -107,7 +106,7 @@ def main():
         for k, m in results["robustness"].items():
             print(f"  {k:12s} AUC {m['auc']:.4f}  bAcc {m['bacc']:.4f}  TNR {m['tnr']:.3f}  TPR {m['tpr']:.3f}")
 
-    # ---------------------------------------------------------------- 3. shortcut tests
+    # shortcut tests
     reals = te[te.cls == "real"].reset_index(drop=True)
     tests = {"clean": None,
              "resize_x0.5": make_perturb("resize", 0.5),
@@ -122,7 +121,7 @@ def main():
         results["shortcut_fpr_real"][name] = fpr
         print(f"  {name:22s} FPR {fpr:.3f}")
 
-    # ---------------------------------------------------------------- 4. Synthbuster
+    # Synthbuster
     if a.synthbuster_root:
         sb = scan_synthbuster(a.synthbuster_root)
         r = run(model, sb, cfg, a, device)   # both sides uncompressed; same re-encoding as training if enabled
@@ -134,9 +133,7 @@ def main():
             print_report(f"Synthbuster, all images resized to long side {a.sb_long_side}",
                          results[f"synthbuster_long{a.sb_long_side}"])
         if a.sb_jpeg:
-            # Training images were all JPEG (COCO reals, format-matched fakes); Synthbuster is
-            # uncompressed on BOTH sides. Compressing every Synthbuster image once at the same
-            # quality puts it in the training format without favouring either class.
+        
             r = run(model, sb, cfg, a, device, perturb=make_perturb("jpeg", a.sb_jpeg))
             results[f"synthbuster_jpeg{a.sb_jpeg}"] = detection_report(r, sb.cls.values)
             print_report(f"Synthbuster, every image JPEG q={a.sb_jpeg} (symmetric)",
